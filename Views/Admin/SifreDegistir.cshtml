@@ -1,0 +1,47 @@
+@{
+    ViewData["Title"] = "Şifre Değiştir";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-header bg-dark text-white p-3" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0"><i class="bi bi-key me-2"></i>Şifre Güncelleme</h5>
+                </div>
+                <div class="card-body p-4">
+                    
+                    @if (ViewBag.Hata != null)
+                    {
+                        <div class="alert alert-danger">@ViewBag.Hata</div>
+                    }
+                    @if (ViewBag.Mesaj != null)
+                    {
+                        <div class="alert alert-success">@ViewBag.Mesaj</div>
+                    }
+
+                    <form asp-action="SifreDegistir" method="post">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Mevcut Şifre</label>
+                            <input type="password" name="mevcutSifre" class="form-control" required>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Yeni Şifre</label>
+                            <input type="password" name="yeniSifre" class="form-control" required minlength="4">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted">Yeni Şifre (Tekrar)</label>
+                            <input type="password" name="yeniSifreTekrar" class="form-control" required minlength="4">
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary fw-bold">Şifreyi Güncelle</button>
+                            <a asp-action="AdminPanel" asp-controller="Ariza" class="btn btn-light text-muted">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

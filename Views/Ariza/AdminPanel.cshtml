@@ -1,0 +1,1429 @@
+﻿@model List<ArizaSikayet.Models.Ariza>
+
+@{
+    ViewData["Title"] = "Yönetim Paneli";
+
+    var aktifSayisi = Model.Count(x => !x.CozulduMu);
+    var tamamlananSayisi = Model.Count(x => x.CozulduMu);
+    var kayitIstekleri = ViewBag.KayitIstekleri as List<ArizaSikayet.Models.PersonelKayitIstegi> ?? new
+List<ArizaSikayet.Models.PersonelKayitIstegi>();
+    var vatandaslar = ViewBag.Vatandaslar as List<ArizaSikayet.Models.Vatandas> ?? new List<ArizaSikayet.Models.Vatandas>();
+    var personeller = ViewBag.Personeller as List<ArizaSikayet.Models.Personel> ?? new List<ArizaSikayet.Models.Personel>();
+    var engellenenEpostalar = ViewBag.EngellenenEpostalar as List<ArizaSikayet.Models.EngellenenEposta> ?? new
+List<ArizaSikayet.Models.EngellenenEposta>();
+    var kategoriler = ArizaKategorileri.TumKategoriler;
+}
+
+<div class="container mt-4">
+
+    <!-- ÜST -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+
+        <div>
+
+            <h2 class="fw-bold text-dark mb-1">
+
+                <i class="bi bi-speedometer2 text-primary me-2"></i>
+                Yönetim Paneli
+
+            </h2>
+
+            <small class="text-muted">
+
+                @DateTime.Now.ToString("dd MMMM yyyy")
+
+            </small>
+
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-controller="Admin" asp-action="SifreDegistir"
+               class="btn btn-outline-warning rounded-pill px-3 shadow-sm">
+
+                <i class="bi bi-key"></i>
+                Şifre Değiştir
+
+            </a>
+
+            <a asp-controller="Admin" asp-action="Logout" class="btn btn-outline-danger rounded-pill px-3 shadow-sm">
+
+                <i class="bi bi-box-arrow-right"></i>
+                Çıkış
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- İSTATİSTİK -->
+    <div class="row mb-5">
+
+        <div class="col-md-6 mb-3">
+
+            <div class="card border-0 shadow-sm bg-danger text-white h-100" style="border-radius:20px;">
+
+                <div class="card-body d-flex align-items-center p-4">
+
+                    <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center"
+                         style="width:70px;height:70px;">
+
+                        <i class="bi bi-exclamation-triangle-fill fs-2"></i>
+
+                    </div>
+
+                    <div class="ms-3">
+
+                        <div class="small text-uppercase opacity-75">
+
+                            Bekleyen Arızalar
+
+                        </div>
+
+                        <div class="display-6 fw-bold">
+
+                            @aktifSayisi
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-6 mb-3">
+
+            <div class="card border-0 shadow-sm bg-success text-white h-100" style="border-radius:20px;">
+
+                <div class="card-body d-flex align-items-center p-4">
+
+                    <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center"
+                         style="width:70px;height:70px;">
+
+                        <i class="bi bi-check-circle-fill fs-2"></i>
+
+                    </div>
+
+                    <div class="ms-3">
+
+                        <div class="small text-uppercase opacity-75">
+
+                            Çözülen Sorunlar
+
+                        </div>
+
+                        <div class="display-6 fw-bold">
+
+                            @tamamlananSayisi
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TAB -->
+    <ul class="nav nav-pills mb-4" role="tablist">
+
+        <li class="nav-item">
+
+            <button class="nav-link active px-4 rounded-pill shadow-sm" data-bs-toggle="pill"
+                    data-bs-target="#aktifTab">
+
+                <i class="bi bi-clock-history me-2"></i>
+                Aktif İhbarlar
+
+            </button>
+
+        </li>
+
+        <li class="nav-item ms-2">
+
+            <button class="nav-link px-4 rounded-pill border shadow-sm" id="haritaTabBtn" data-bs-toggle="pill"
+                    data-bs-target="#haritaTab">
+
+                <i class="bi bi-map me-2"></i>
+                Harita İzleme
+
+            </button>
+
+        </li>
+
+        <li class="nav-item ms-2">
+
+            <button class="nav-link px-4 rounded-pill border shadow-sm" data-bs-toggle="pill"
+                    data-bs-target="#kayitIstekleriTab">
+
+                <i class="bi bi-person-check me-2"></i>
+                Kayıt İstekleri
+                @if (kayitIstekleri.Any())
+                {
+                    <span class="badge bg-danger ms-1">@kayitIstekleri.Count</span>
+                }
+
+            </button>
+
+        </li>
+
+        <li class="nav-item ms-2">
+
+            <button class="nav-link px-4 rounded-pill border shadow-sm" data-bs-toggle="pill"
+                    data-bs-target="#arsivTab">
+
+                <i class="bi bi-archive me-2"></i>
+                Arşiv
+
+            </button>
+
+        </li>
+
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- AKTİF -->
+        <div class="tab-pane fade show active" id="aktifTab">
+
+            <div class="card border-0 shadow-sm" style="border-radius:20px;">
+
+                <!-- FİLTRE -->
+                <div class="p-3 border-bottom">
+
+                    <div class="row">
+
+                        <div class="col-md-4">
+
+                            <div class="p-3 border-bottom">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <select id="aktifKategoriFilter" class="form-select shadow-sm">
+                                            <option value="">Tüm Kategoriler</option>
+                                            @foreach (var kategori in kategoriler)
+                                            {
+                                                <option value="@kategori">@ArizaKategorileri.Etiketler[kategori]</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <select id="aktifDurumFilter" class="form-select shadow-sm border-primary">
+                                            <option value="">Tüm Durumlar</option>
+                                            <option value="Beklemede">Beklemede</option>
+                                            <option value="Inceleniyor">İnceleniyor</option>
+                                            <option value="Onariliyor">Onarılıyor</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- TABLO -->
+                <div class="table-responsive p-3">
+
+                    <table class="table align-middle custom-table">
+
+                        <thead>
+
+                            <tr class="text-muted">
+
+                                <th>Görsel</th>
+                                <th>Arıza Bilgisi</th>
+                                <th>Bildiren</th>
+                                <th>Kategori</th>
+                                <th>Tarih</th>
+                                <th>Durum</th>
+                                <th class="text-end">İşlemler</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="aktifTableBody">
+
+                            @foreach (var item in Model.Where(x => !x.CozulduMu).OrderByDescending(x =>
+                            x.OlusturmaTarihi))
+                            {
+                                // JavaScript'e gönderilecek metinleri güvenli hale getirme
+                                var jsAciklama = System.Web.HttpUtility.JavaScriptStringEncode(item.Aciklama ?? "");
+                                var jsBaslik = System.Web.HttpUtility.JavaScriptStringEncode(item.Baslik ?? "");
+                                var jsAdres = System.Web.HttpUtility.JavaScriptStringEncode(item.AdresTarifi ?? "");
+
+                                <tr class="aktif-row" data-kategori="@item.Kategori" data-durum="@item.Durum.ToString()"
+                                    onclick="detayGoster('@jsBaslik', '@jsAciklama', '@jsAdres', '@item.Kategori', '@(item.FotografYolu ?? "/img/no-image.png")', '@item.Enlem', '@item.Boylam')">
+
+                                    <td>
+                                        <img src="@(string.IsNullOrEmpty(item.FotografYolu) ? "/img/no-image.png" : item.FotografYolu)"
+                                             class="rounded shadow-sm" style="width:80px;height:60px;object-fit:cover;"
+                                             alt="Arıza Foto">
+                                    </td>
+
+                                    <td style="max-width:250px;">
+                                        <div class="fw-bold text-truncate">@item.Baslik</div>
+                                        <div class="small text-muted text-truncate">@item.AdresTarifi</div>
+                                    </td>
+
+                                    <td>
+                                        <div class="fw-semibold">@(item.Vatandas?.KullaniciAdi ?? "Bilinmiyor")</div>
+                                        <div class="small text-muted">@(item.Vatandas?.Eposta ?? "-")</div>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-danger">@item.Kategori</span>
+                                    </td>
+
+                                    <td class="small">
+                                        @item.OlusturmaTarihi.ToString("dd.MM.yyyy")
+                                    </td>
+
+                                    <td style="max-width:300px;">
+
+                                        @if (item.Durum == ArizaDurumu.Beklemede)
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-3">
+                                                Beklemede
+                                            </span>
+                                        }
+                                        else if (item.Durum == ArizaDurumu.Inceleniyor)
+                                        {
+                                            <span class="badge bg-info text-dark rounded-pill px-3">
+                                                İnceleniyor
+                                            </span>
+                                        }
+                                        else if (item.Durum == ArizaDurumu.Onariliyor)
+                                        {
+                                            <span class="badge bg-warning text-dark rounded-pill px-3">
+                                                Onarılıyor
+                                            </span>
+                                        }
+                                        else if (item.Durum == ArizaDurumu.Tamamlandi)
+                                        {
+                                            <span class="badge bg-success rounded-pill px-3">
+                                                Tamamlandı
+                                            </span>
+                                        }
+                                        else if (item.Durum == ArizaDurumu.IptalEdildi)
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3">
+                                                İptal Edildi
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-end" onclick="event.stopPropagation();">
+                                        <div class="d-flex gap-1 justify-content-end align-items-center">
+
+                                            @* Durum Güncelleme Butonları *@
+                                            <form asp-action="DurumGuncelle" method="post" class="m-0">
+                                                <input type="hidden" name="id" value="@item.Id" />
+
+                                                @if (item.Durum == ArizaDurumu.Beklemede)
+                                                {
+                                                    <input type="hidden" name="yeniDurum" value="@ArizaDurumu.Inceleniyor" />
+                                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3"
+                                                            onclick="return confirm('Arızayı incelemeye almak istediğinize emin misiniz?')">
+                                                        <i class="bi bi-search"></i> İncelet
+                                                    </button>
+                                                }
+                                                else if (item.Durum == ArizaDurumu.Inceleniyor)
+                                                {
+                                                    <input type="hidden" name="yeniDurum" value="@ArizaDurumu.Onariliyor" />
+                                                    <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3"
+                                                            onclick="return confirm('Onarım sürecini başlatmak istediğinize emin misiniz?')">
+                                                        <i class="bi bi-tools"></i> Onart
+                                                    </button>
+                                                }
+                                                else if (item.Durum == ArizaDurumu.Onariliyor)
+                                                {
+                                                    <input type="hidden" name="yeniDurum" value="@ArizaDurumu.Tamamlandi" />
+                                                    <button type="submit" class="btn btn-success btn-sm rounded-pill px-3"
+                                                            onclick="return confirm('Arıza giderildi mi? Bu işlem geri alınamaz.')">
+                                                        <i class="bi bi-check-lg"></i> Tamamla
+                                                    </button>
+                                                }
+                                            </form>
+
+                                            @* İptal Butonu *@
+                                            @if (!item.CozulduMu && item.Durum != ArizaDurumu.IptalEdildi)
+                                            {
+                                                <form asp-action="DurumGuncelle" method="post" class="m-0">
+                                                    <input type="hidden" name="id" value="@item.Id" />
+                                                    <input type="hidden" name="yeniDurum" value="@ArizaDurumu.IptalEdildi" />
+                                                    <button type="submit"
+                                                            class="btn btn-outline-danger btn-sm rounded-pill px-2"
+                                                            onclick="return confirm('Bu ihbarı iptal etmek istediğinize emin misiniz?')">
+                                                        İptal
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- HARİTA -->
+        <div class="tab-pane fade" id="haritaTab">
+
+            <div class="card border-0 shadow-sm" style="border-radius:20px; overflow:hidden;">
+
+                <div class="card-header bg-white border-0 p-3">
+
+                    <div class="row align-items-center g-2">
+
+                        <div class="col-md-2">
+
+                            <h6 class="fw-bold mb-0">
+
+                                <i class="bi bi-broadcast-pin text-danger me-2"></i>
+                                Canlı Arıza Haritası
+
+                            </h6>
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <div class="col-md-12 d-flex gap-2">
+
+                                <select id="mapKategoriFilter" class="form-select shadow-sm">
+
+                                    <option value="">Tüm Kategoriler</option>
+
+                                    @foreach (var kategori in kategoriler)
+                                    {
+                                        <option value="@kategori">@ArizaKategorileri.Etiketler[kategori]</option>
+                                    }
+
+                                </select>
+
+                            
+
+                            
+
+                                <select id="mapDurumFilter" class="form-select shadow-sm">
+
+                                    <option value="">Tüm Durumlar</option>
+
+                                    <option value="Beklemede">Beklemede</option>
+                                    <option value="Inceleniyor">İnceleniyor</option>
+                                    <option value="Onariliyor">Onarılıyor</option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6 text-end">
+
+                            <div class="input-group input-group-sm d-inline-flex w-auto shadow-sm"
+                                 style="border-radius:30px; overflow:hidden;">
+
+                                <input type="text" id="addressSearchInput" class="form-control border-primary ps-3"
+                                       placeholder="Adres, mahalle veya sokak yazın..." style="width:300px;">
+
+                                <button class="btn btn-primary px-4" onclick="searchAddress()">
+
+                                    <i class="bi bi-search"></i>
+                                    Git
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-0">
+
+                    <div id="adminMap" style="height:75vh;width:100%;"></div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ARŞİV -->
+        <div class="tab-pane fade" id="kayitIstekleriTab">
+
+            <div class="card border-0 shadow-sm" style="border-radius:20px;">
+
+                <div class="card-header bg-white border-0 p-3">
+                    <h6 class="fw-bold mb-0">
+                        <i class="bi bi-person-check text-primary me-2"></i>
+                        Personel Kayıt İstekleri
+                    </h6>
+                </div>
+
+                <div class="table-responsive p-3">
+
+                    <table class="table align-middle mb-0">
+
+                        <thead class="text-muted small text-uppercase">
+                            <tr>
+                                <th>Kullanıcı Adı</th>
+                                <th>Görev Kategorisi</th>
+                                <th>Talep Tarihi</th>
+                                <th class="text-end">İşlem</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var istek in kayitIstekleri)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@istek.KullaniciAdi</div>
+                                        <div class="small text-muted">Admin onayı bekliyor</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary rounded-pill px-3">@istek.GorevKategori</span>
+                                    </td>
+                                    <td class="small">
+                                        @istek.TalepTarihi.ToString("dd.MM.yyyy HH:mm")
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <form asp-controller="Personel" asp-action="KayitIstegiOnayla" method="post"
+                                                  class="m-0">
+                                                <input type="hidden" name="id" value="@istek.Id" />
+                                                <button type="submit" class="btn btn-success btn-sm rounded-pill px-3"
+                                                        onclick="return confirm('Bu personel kaydını onaylamak istiyor musunuz?')">
+                                                    <i class="bi bi-check-lg"></i> Onayla
+                                                </button>
+                                            </form>
+
+                                            <form asp-controller="Personel" asp-action="KayitIstegiReddet" method="post"
+                                                  class="m-0">
+                                                <input type="hidden" name="id" value="@istek.Id" />
+                                                <button type="submit"
+                                                        class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                                        onclick="return confirm('Bu personel kayıt isteğini reddetmek istiyor musunuz?')">
+                                                    Reddet
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+
+                            @if (!kayitIstekleri.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        Bekleyen personel kayıt isteği yok.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="tab-pane fade" id="arsivTab">
+
+            <div class="card border-0 shadow-sm" style="border-radius:20px;">
+
+                <div class="table-responsive p-3">
+
+                    <table class="table align-middle">
+
+                        <tbody>
+
+                            @foreach (var item in Model.Where(x => x.CozulduMu)
+                                .OrderByDescending(x => x.OlusturmaTarihi))
+                            {
+                                <tr>
+
+                                    <td>
+
+                                        <strong>@item.Baslik</strong>
+
+                                    </td>
+
+                                    <td class="small text-muted">
+
+                                        @item.AdresTarifi
+
+                                    </td>
+
+                                    <td>
+                                        <div class="fw-semibold">@(item.Vatandas?.KullaniciAdi ?? "Bilinmiyor")</div>
+                                        <div class="small text-muted">@(item.Vatandas?.Eposta ?? "-")</div>
+                                    </td>
+
+                                    <td>
+
+                                        <span class="badge bg-success rounded-pill px-3">
+
+                                            Tamamlandı
+
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="container mt-4">
+    <div class="card border-0 shadow-sm" style="border-radius:20px;">
+        <div class="card-header bg-white border-0 p-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-people text-primary me-2"></i>Kullanıcı ve E-posta Yönetimi</h5>
+        </div>
+        <div class="card-body">
+            <form asp-controller="Admin" asp-action="EpostaEngelle" method="post" class="row g-2 align-items-end mb-4">
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold text-muted">Engellenecek e-posta</label>
+                    <input type="email" name="eposta" class="form-control" placeholder="ornek@eposta.com" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold text-muted">Açıklama</label>
+                    <input type="text" name="aciklama" class="form-control" maxlength="200" placeholder="İsteğe bağlı">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-danger w-100">Engelle</button>
+                </div>
+            </form>
+
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vatandasYonetimTab" type="button" role="tab">Vatandaşlar</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#personelYonetimTab" type="button" role="tab">Personeller</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#engelliEpostaTab" type="button" role="tab">Engellenen E-postalar</button>
+                </li>
+            </ul>
+
+            <div class="tab-content border border-top-0 rounded-bottom p-3">
+                <div class="tab-pane fade show active" id="vatandasYonetimTab" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <tbody>
+                                @foreach (var vatandas in vatandaslar)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@vatandas.KullaniciAdi</strong>
+                                            <div class="small text-muted">@vatandas.Eposta</div>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="badge @(vatandas.EpostaOnaylandi ? "bg-success" : "bg-secondary")">@(vatandas.EpostaOnaylandi ? "Onaylı" : "Bekliyor")</span>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!vatandaslar.Any())
+                                {
+                                    <tr><td class="text-muted small">Kayıtlı vatandaş yok.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="personelYonetimTab" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <tbody>
+                                @foreach (var personel in personeller)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@personel.KullaniciAdi</strong>
+                                            <div class="small text-muted">@personel.Eposta</div>
+                                        </td>
+                                        <td class="text-end"><span class="badge bg-primary">@personel.GorevKategori</span></td>
+                                    </tr>
+                                }
+                                @if (!personeller.Any())
+                                {
+                                    <tr><td class="text-muted small">Kayıtlı personel yok.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="engelliEpostaTab" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <tbody>
+                                @foreach (var engel in engellenenEpostalar)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@engel.Eposta</strong>
+                                            <div class="small text-muted">@engel.Aciklama</div>
+                                        </td>
+                                        <td class="text-end">
+                                            <form asp-controller="Admin" asp-action="EpostaEngelKaldir" method="post">
+                                                <input type="hidden" name="id" value="@engel.Id">
+                                                <button class="btn btn-sm btn-outline-secondary" type="submit">Kaldır</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!engellenenEpostalar.Any())
+                                {
+                                    <tr><td class="text-muted small">Engellenen e-posta yok.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- MODAL -->
+    <div class="modal fade" id="arizaDetayModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"
+                 style="border-radius:20px; border:none; overflow:hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.2);">
+
+                <div class="modal-header bg-dark text-white border-0">
+                    <h5 class="modal-title d-flex align-items-center gap-2" id="modalBaslik">
+                        <i class="bi bi-info-circle"></i> Arıza Detayı
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-0">
+                    <img id="modalResim" src="" class="w-100"
+                         style="height:250px; object-fit:cover; background-color: #f8f9fa;">
+
+                    <div class="p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span id="modalKategori" class="badge bg-danger rounded-pill px-3"></span>
+                                <span id="modalDurumBadge" class="badge rounded-pill px-3 ms-1"></span>
+                            </div>
+                        </div>
+
+                        <h4 id="modalAltBaslik" class="fw-bold text-dark mb-2"></h4>
+                        <p id="modalAciklama" class="text-muted mb-4" style="line-height: 1.6;"></p>
+
+                        <div class="bg-light p-3 rounded-4 border-0">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-white p-2 rounded-3 shadow-sm me-3">
+                                    <i class="bi bi-geo-alt-fill text-danger fs-5"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block text-uppercase fw-bold"
+                                           style="font-size: 0.7rem; letter-spacing: 1px;">
+                                        Adres / Konum Tarifi
+                                    </small>
+                                    <span id="modalAdres" class="small fw-semibold text-dark"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between">
+                    <button id="modalYolBtn" type="button" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-sign-turn-right-fill me-2"></i>Yol Tarifi
+                    </button>
+
+                    <button type="button" class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">
+                        Kapat
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .nav-pills .nav-link.active {
+            background: #0d6efd;
+        }
+
+        .custom-table thead th {
+            font-size: .8rem;
+            text-transform: uppercase;
+        }
+
+        .leaflet-popup-content-wrapper {
+
+            border-radius: 15px;
+
+            box-shadow:
+                0 10px 25px rgba(0, 0, 0, .15) !important;
+        }
+
+        .popup-img {
+
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #eee;
+        }
+
+        #addressSearchInput:focus {
+
+            outline: none;
+            box-shadow: none;
+
+        }
+    </style>
+
+    @section Scripts {
+
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+        <script>
+
+            let map;
+            let markers = [];
+
+            const tumArizalar =
+            @Html.Raw(Json.Serialize(Model.Where(x => !x.CozulduMu)));
+
+            function normalizeDurum(durum) {
+            const durumlar = {
+            0: "Beklemede",
+            1: "Inceleniyor",
+            2: "Onariliyor",
+            3: "Tamamlandi",
+            4: "IptalEdildi"
+            };
+
+            return durumlar[durum] || durum;
+            }
+
+            function kategoriRengi(kategori) {
+            const metin = (kategori || '').toLocaleLowerCase('tr-TR');
+
+            if (metin.includes('elektrik')) return 'yellow';
+            if (metin.includes('su')) return 'blue';
+            if (metin.includes('doğalgaz') || metin.includes('dogalgaz')) return 'violet';
+            if (metin.includes('kanalizasyon')) return 'green';
+            if (metin.includes('hasarlı') || metin.includes('hasarli')) return 'red';
+            if (metin.includes('yol')) return 'orange';
+            if (metin.includes('peyzaj') || metin.includes('park')) return 'green';
+            if (metin.includes('temizlik')) return 'grey';
+            if (metin.includes('ulaşım') || metin.includes('ulasim') || metin.includes('trafik')) return 'orange';
+            if (metin.includes('diğer') || metin.includes('diger')) return 'grey';
+
+            return 'red';
+            }
+
+            function kategoriBadgeClass(kategori) {
+            const renk = kategoriRengi(kategori);
+            const siniflar = {
+            yellow: 'bg-warning text-dark',
+            blue: 'bg-primary',
+            green: 'bg-success',
+            orange: 'bg-warning text-dark',
+            violet: 'bg-info text-dark',
+            grey: 'bg-secondary',
+            red: 'bg-danger'
+            };
+
+            return siniflar[renk] || 'bg-danger';
+            }
+
+            function durumRengi(durum) {
+            if (durum === "Beklemede") return "red";
+            if (durum === "Inceleniyor") return "blue";
+            if (durum === "Onariliyor") return "orange";
+            if (durum === "Tamamlandi") return "green";
+            if (durum === "IptalEdildi") return "grey";
+            return "red";
+            }
+
+            function durumBadgeClass(durum) {
+            const siniflar = {
+            Beklemede: "bg-secondary",
+            Inceleniyor: "bg-info text-dark",
+            Onariliyor: "bg-warning text-dark",
+            Tamamlandi: "bg-success",
+            IptalEdildi: "bg-danger"
+            };
+            return siniflar[durum] || "bg-secondary";
+            }
+
+            function markerIconOlustur(durum) {
+            const renk = durumRengi(durum);
+
+            return L.icon({
+            iconUrl:
+            `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${renk}.png`,
+
+            shadowUrl:
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+            });
+            }
+
+            const southWest = L.latLng(34.0, 24.0);
+            const northEast = L.latLng(43.0, 46.0);
+
+            const bounds =
+            L.latLngBounds(southWest, northEast);
+
+            // YOL TARİFİ
+            function yolTarifiAl(lat, lng) {
+            if (!lat || !lng) {
+            alert("Koordinat bilgisi bulunamadı!");
+            return;
+            }
+
+            // 1. Koordinatları string'e çevirip virgülleri noktaya dönüştürüyoruz (Örn: "41,12" -> "41.12")
+            let safeLat = lat.toString().replace(',', '.');
+            let safeLng = lng.toString().replace(',', '.');
+
+            // 2. Koordinatları sayıya çeviriyoruz
+            let numLat = parseFloat(safeLat);
+            let numLng = parseFloat(safeLng);
+
+            // 3. Eğer koordinatlar çok büyükse (Örn: 41123456 gibi) noktayı kaydırıyoruz
+            while (numLat > 90) numLat /= 10;
+            while (numLng > 180) numLng /= 10;
+
+            // 4. Doğru Google Maps URL formatı
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${numLat},${numLng}&travelmode=driving`;
+
+            window.open(url, '_blank');
+            }
+
+            // ADRES ARA
+            async function searchAddress() {
+
+            const query =
+            document.getElementById('addressSearchInput').value;
+
+            if (!query) return;
+
+            try {
+
+            const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=tr`
+            );
+
+            const data = await response.json();
+
+            if (data.length > 0) {
+
+            map.flyTo(
+            [data[0].lat, data[0].lon],
+            15,
+            {
+            animate: true,
+            duration: 1.5
+            }
+            );
+
+            }
+            else {
+
+            alert("Adres bulunamadı.");
+
+            }
+
+            }
+            catch {
+
+            alert("Servise bağlanılamadı.");
+
+            }
+
+            }
+
+            // TABLO FİLTRE
+            // TABLO FİLTRELERİ
+            const kategoriFilter =
+            document.getElementById("aktifKategoriFilter");
+
+            const durumFilter =
+            document.getElementById("aktifDurumFilter");
+
+            function filtreleriUygula() {
+
+            const seciliKategori =
+            kategoriFilter.value;
+
+            const seciliDurum =
+            durumFilter.value;
+
+            const rows =
+            document.querySelectorAll(".aktif-row");
+
+            rows.forEach(row => {
+
+            const kategori =
+            row.dataset.kategori;
+
+            const durum =
+            row.dataset.durum;
+
+            const kategoriUygun =
+            seciliKategori === "" ||
+            kategori === seciliKategori;
+
+            const durumUygun =
+            seciliDurum === "" ||
+            durum === seciliDurum;
+
+            if (kategoriUygun && durumUygun) {
+
+            row.style.display = "";
+
+            }
+            else {
+
+            row.style.display = "none";
+
+            }
+
+            });
+
+            }
+
+            // EVENTLER
+            kategoriFilter.addEventListener(
+            "change",
+            filtreleriUygula
+            );
+
+            durumFilter.addEventListener(
+            "change",
+            filtreleriUygula
+            );
+
+            // HARİTA FİLTRE
+            // HARİTA FİLTRELERİ
+            const mapKategoriFilter =
+            document.getElementById("mapKategoriFilter");
+
+            const mapDurumFilter =
+            document.getElementById("mapDurumFilter");
+
+            function haritaFiltreleriniUygula() {
+
+            const kategori =
+            mapKategoriFilter.value;
+
+            const durum =
+            mapDurumFilter.value;
+
+            loadAdminMarkers(kategori, durum);
+
+            }
+
+            mapKategoriFilter.addEventListener(
+            "change",
+            haritaFiltreleriniUygula
+            );
+
+            mapDurumFilter.addEventListener(
+            "change",
+            haritaFiltreleriniUygula
+            );
+
+            // ENTER
+            document.getElementById('addressSearchInput')
+            ?.addEventListener('keypress', function (e) {
+
+            if (e.key === 'Enter') {
+
+            searchAddress();
+
+            }
+
+            });
+
+            // HARİTA TAB
+            document.getElementById('haritaTabBtn')
+            .addEventListener('shown.bs.tab', function () {
+
+            if (!map) {
+
+            map = L.map('adminMap', {
+
+            scrollWheelZoom: true,
+            maxBounds: bounds,
+            maxBoundsViscosity: 1.0
+
+            }).setView([38.9637, 35.2433], 6);
+
+            L.tileLayer(
+            'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+            {
+            attribution: '© OpenStreetMap',
+            minZoom: 6,
+            maxZoom: 18
+            }
+            ).addTo(map);
+
+            loadAdminMarkers();
+
+            }
+            else {
+
+            map.invalidateSize();
+
+            }
+
+            });
+
+        
+            function durumAksiyonlariOlustur(id, durum) {
+            const aksiyonlar = [];
+
+            if (durum === "Beklemede") {
+            aksiyonlar.push({
+            yeniDurum: "Inceleniyor",
+            sinif: "btn-primary",
+            ikon: "bi-search",
+            metin: "İncelet"
+            });
+            }
+            else if (durum === "Inceleniyor") {
+            aksiyonlar.push({
+            yeniDurum: "Onariliyor",
+            sinif: "btn-warning",
+            ikon: "bi-tools",
+            metin: "Onart"
+            });
+            }
+            else if (durum === "Onariliyor") {
+            aksiyonlar.push({
+            yeniDurum: "Tamamlandi",
+            sinif: "btn-success",
+            ikon: "bi-check-lg",
+            metin: "Tamamla"
+            });
+            }
+
+            if (durum !== "Tamamlandi" && durum !== "IptalEdildi") {
+            aksiyonlar.push({
+            yeniDurum: "IptalEdildi",
+            sinif: "btn-outline-danger",
+            ikon: "bi-x-lg",
+            metin: "İptal"
+            });
+            }
+
+            return aksiyonlar.map(aksiyon => `
+            <button onclick="arizaDurumGuncelleAjax(${id}, '${aksiyon.yeniDurum}')"
+            class="btn btn-sm ${aksiyon.sinif} rounded-pill shadow-sm">
+            <i class="bi ${aksiyon.ikon}"></i>
+            ${aksiyon.metin}
+            </button>
+            `).join("");
+            }
+
+            // MARKER YÜKLE
+            function loadAdminMarkers(
+            kategoriFilter = "",
+            durumFilter = ""
+            ) {
+            markers.forEach(marker => {
+
+            map.removeLayer(marker);
+
+            });
+
+            markers = [];
+
+            tumArizalar.forEach(ariza => {
+
+            const kategori =
+            ariza.kategori || ariza.Kategori;
+            const durum =
+            normalizeDurum(ariza.durum ?? ariza.Durum);
+            const bildirenAd =
+            ariza.vatandas?.kullaniciAdi || ariza.Vatandas?.KullaniciAdi || "Bilinmiyor";
+            const bildirenEposta =
+            ariza.vatandas?.eposta || ariza.Vatandas?.Eposta || "-";
+
+            const kategoriUygun =
+            kategoriFilter === "" ||
+            kategori === kategoriFilter;
+
+            const durumUygun =
+            durumFilter === "" ||
+            durum === durumFilter;
+
+            if (!kategoriUygun || !durumUygun) {
+
+            return;
+
+            }
+
+            let lat =
+            ariza.enlem || ariza.Enlem;
+
+            let lng =
+            ariza.boylam || ariza.Boylam;
+
+            lat = parseFloat(lat.toString().replace(',', '.'));
+            lng = parseFloat(lng.toString().replace(',', '.'));
+
+            while (lat > 90) lat /= 10;
+            while (lng > 180) lng /= 10;
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+
+            const popupContent = `
+
+            <div class="p-1" style="width:230px">
+
+            <img src="${ariza.fotografYolu || ariza.FotografYolu || '/img/no-image.png'}"
+            class="popup-img"
+            onerror="this.src='/img/no-image.png'">
+            <hr>
+            
+            <h6 class="fw-bold mb-1 text-dark">
+
+            ${ariza.baslik || ariza.Baslik}
+
+            </h6>
+
+            <p class="text-muted mb-1"
+            style="font-size:0.8rem;">
+
+            ${ariza.aciklama || ariza.Aciklama || "Açıklama yok"}
+
+            </p>
+
+            <div class="small bg-white border rounded p-2 mb-2">
+
+            <strong>Bildiren:</strong> ${bildirenAd}<br>
+            <span class="text-muted">${bildirenEposta}</span>
+
+            </div>
+
+            <div class="mb-2 p-2 bg-light rounded shadow-sm border-start border-danger border-3"
+            style="font-size:0.75rem;">
+
+            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+
+            <strong>Konum:</strong><br>
+
+            ${ariza.adresTarifi || ariza.AdresTarifi}
+
+            </div>
+
+            <div class="d-grid gap-2 mt-2">
+
+            <button onclick="yolTarifiAl(${lat}, ${lng})"
+            class="btn btn-sm btn-primary rounded-pill shadow-sm">
+
+            <i class="bi bi-sign-turn-right-fill"></i>
+            Yol Tarifi
+
+            </button>
+
+            ${durumAksiyonlariOlustur(ariza.id || ariza.Id, durum)}
+
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+
+            <span class="badge ${kategoriBadgeClass(kategori)}">
+
+            ${kategori}
+
+            </span>
+
+            <span class="badge ${durumBadgeClass(durum)}">
+
+            ${durum}
+
+            </span>
+
+            <small class="text-muted">
+
+            ${new Date(ariza.olusturmaTarihi || ariza.OlusturmaTarihi)
+            .toLocaleDateString('tr-TR')}
+
+            </small>
+
+            </div>
+
+            </div>
+            `;
+
+            const marker =
+            L.marker([lat, lng], { icon: markerIconOlustur(durum) })
+            .addTo(map)
+            .bindPopup(popupContent);
+
+            markers.push(marker);
+
+            }
+
+            });
+
+            }
+
+            function durumOnayMesaji(yeniDurum) {
+            const mesajlar = {
+            Inceleniyor: "Arızayı incelemeye almak istediğinize emin misiniz?",
+            Onariliyor: "Onarım sürecini başlatmak istediğinize emin misiniz?",
+            Tamamlandi: "Arıza giderildi mi? Bu işlem geri alınamaz.",
+            IptalEdildi: "Bu ihbarı iptal etmek istediğinize emin misiniz?"
+            };
+
+            return mesajlar[yeniDurum] || "Durumu güncellemek istediğinize emin misiniz?";
+            }
+
+            async function arizaDurumGuncelleAjax(id, yeniDurum) {
+
+            if (!confirm(durumOnayMesaji(yeniDurum))) return;
+
+            try {
+
+            const formData =
+            new URLSearchParams();
+
+            formData.append("id", id);
+            formData.append("yeniDurum", yeniDurum);
+
+            const response =
+            await fetch('/Ariza/DurumGuncelle', {
+
+            method: 'POST',
+
+            headers: {
+            'Content-Type':
+            'application/x-www-form-urlencoded'
+            },
+
+            body: formData
+
+            });
+
+            if (!response.ok) {
+
+            alert("Sunucu hatası oluştu.");
+            return;
+
+            }
+
+            location.reload();
+
+            }
+            catch (error) {
+
+            console.error(error);
+
+            alert('Sunucu bağlantı hatası!');
+
+            }
+
+            }
+
+            // MODAL DETAY
+            function detayGoster(
+            baslik,
+            aciklama,
+            adres,
+            kategori,
+            resim,
+            lat,
+            lng
+            ) {
+
+            document.getElementById('modalBaslik')
+            .innerText = baslik;
+
+            document.getElementById('modalAltBaslik')
+            .innerText = baslik;
+
+            document.getElementById('modalAciklama')
+            .innerText =
+            aciklama || "Açıklama belirtilmemiş.";
+
+            document.getElementById('modalAdres')
+            .innerText = adres;
+
+            document.getElementById('modalKategori')
+            .innerText = kategori;
+
+            document.getElementById('modalResim')
+            .src = resim;
+
+            // YOL TARİFİ
+            // Scripts içindeki detayGoster fonksiyonunun sonundaki yol tarifi kısmını şöyle yap:
+            document.getElementById('modalYolBtn').onclick = function () {
+            // Gelen lat ve lng değerlerini doğrudan gönder
+            yolTarifiAl(lat, lng);
+            };
+
+            // MODAL AÇ
+            const myModal =
+            new bootstrap.Modal(
+            document.getElementById('arizaDetayModal')
+            );
+
+            myModal.show();
+
+            }
+
+        </script>
+
+    }
+
+

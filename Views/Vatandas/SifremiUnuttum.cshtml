@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Şifremi Unuttum";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card border-0 shadow-sm" style="border-radius:18px;">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-3">Şifremi Unuttum</h4>
+                @if (ViewBag.Hata != null) { <div class="alert alert-danger small">@ViewBag.Hata</div> }
+                @if (ViewBag.Mesaj != null) { <div class="alert alert-success small">@ViewBag.Mesaj</div> }
+                <form asp-action="SifremiUnuttum" method="post">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">E-posta</label>
+                        <input type="email" name="eposta" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Güvenlik Kodu</label>
+                        <div class="d-flex gap-2">
+                            <div class="px-3 py-2 bg-light border rounded fw-bold text-primary">@ViewBag.GuvenlikKodu</div>
+                            <input type="text" name="guvenlikKodu" class="form-control" maxlength="6" required>
+                        </div>
+                    </div>
+                    <button class="btn btn-dark w-100" type="submit">Bağlantı Gönder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

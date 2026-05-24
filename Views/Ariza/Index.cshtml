@@ -1,0 +1,286 @@
+@{
+    var kategoriler = ViewBag.Kategoriler as string[] ?? ArizaKategorileri.TumKategoriler;
+    ViewData["Title"] = "Canlı Arıza Takip Haritası";
+}
+
+<div class="container-fluid px-4 mt-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px;">
+                <div class="card-header bg-dark text-white p-3 border-0" style="border-radius: 20px 20px 0 0;">
+                    <h5 class="mb-0 fs-6"><i class="bi bi-cpu-fill me-2 text-danger"></i>Sistem Durumu</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="small text-muted">Türkiye genelinde bildirilen aktif arızalar anlık olarak aşağıda listelenmektedir.</p>
+                    
+                    <div class="bg-light rounded-3 p-3 mb-3 border">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-secondary small">Aktif İhbarlar</span>
+                            <span id="aktifSayi" class="badge bg-danger rounded-pill fs-6 px-3 shadow-sm">...</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 small border-0 mb-3">
+                        <i class="bi bi-info-circle-fill me-2"></i> Baloncuklara tıklayarak detayları görebilirsiniz.
+                    </div>
+
+                    <div class="border rounded-3 p-3 mb-3 bg-light">
+                        <h6 class="fw-bold small mb-3 text-secondary border-bottom pb-2">Filtreler</h6>
+                        <select id="kategoriFilter" class="form-select form-select-sm mb-2">
+                            <option value="">Tüm Kategoriler</option>
+                            @foreach (var kategori in kategoriler)
+                            {
+                                <option value="@kategori">@ArizaKategorileri.Etiketler[kategori]</option>
+                            }
+                        </select>
+                        <select id="durumFilter" class="form-select form-select-sm">
+                            <option value="">Tüm Durumlar</option>
+                            <option value="Beklemede">Beklemede</option>
+                            <option value="Inceleniyor">İnceleniyor</option>
+                            <option value="Onariliyor">Onarılıyor</option>
+                        </select>
+                    </div>
+
+                    <a asp-action="Bildir" class="btn btn-dark w-100 py-2 fw-bold text-uppercase shadow-sm" style="font-size: 0.8rem;">
+                        <i class="bi bi-megaphone-fill me-2"></i> Yeni Bildirim Oluştur
+                    </a>
+                </div>
+            </div>
+
+            @* 81 İL SEÇİM MENÜSÜ *@
+            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold small mb-3 text-secondary border-bottom pb-2">Hızlı Şehir Erişimi</h6>
+                    <select id="sehirSecimi" class="form-select form-select-sm border-0 bg-light rounded-pill" onchange="sehreGit(this.value)">
+                        <option value="">Şehir Seçiniz...</option>
+                        @* JavaScript ile 81 il buraya dolacak *@
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9 mt-4 mt-lg-0">
+            <div class="card border-0 shadow border-0" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-dark text-uppercase small" style="letter-spacing: 1px;">
+                        <i class="bi bi-broadcast text-danger me-2"></i> Türkiye Canlı İzleme Ekranı
+                    </span>
+                    <span class="badge bg-success small text-uppercase" style="font-size: 0.6rem;">Sistem Çevrimiçi</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height: 75vh; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        .leaflet-popup-content-wrapper { border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; }
+        .popup-img { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; border: 1px solid #eee; }
+        #sehirSecimi:focus { box-shadow: none; border: 1px solid #dee2e6; }
+    </style>
+
+    <script>
+        // 1. Harita Sınırları ve Kurulumu
+        var southWest = L.latLng(34.0, 24.0),
+            northEast = L.latLng(43.0, 46.0),
+            bounds = L.latLngBounds(southWest, northEast);
+
+        var map = L.map('map', {
+            scrollWheelZoom: true,
+            maxBounds: bounds,
+            maxBoundsViscosity: 1.0
+        }).setView([38.9637, 35.2433], 6);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap',
+            minZoom: 6,
+            maxZoom: 18
+        }).addTo(map);
+
+        // 2. Tam 81 İl Koordinat Listesi
+        const iller = [
+            {ad: "Adana", lat: 37.00, lng: 35.32}, {ad: "Adıyaman", lat: 37.76, lng: 38.27}, {ad: "Afyonkarahisar", lat: 38.75, lng: 30.54}, {ad: "Ağrı", lat: 39.71, lng: 43.05}, {ad: "Amasya", lat: 40.65, lng: 35.83}, {ad: "Ankara", lat: 39.93, lng: 32.85}, {ad: "Antalya", lat: 36.88, lng: 30.70}, {ad: "Artvin", lat: 41.18, lng: 41.82}, {ad: "Aydın", lat: 37.84, lng: 27.84}, {ad: "Balıkesir", lat: 39.64, lng: 27.88}, {ad: "Bilecik", lat: 40.14, lng: 29.98}, {ad: "Bingöl", lat: 38.88, lng: 40.50}, {ad: "Bitlis", lat: 38.40, lng: 42.11}, {ad: "Bolu", lat: 40.73, lng: 31.60}, {ad: "Burdur", lat: 37.72, lng: 30.28}, {ad: "Bursa", lat: 40.18, lng: 29.06}, {ad: "Çanakkale", lat: 40.15, lng: 26.41}, {ad: "Çankırı", lat: 40.60, lng: 33.62}, {ad: "Çorum", lat: 40.54, lng: 34.95}, {ad: "Denizli", lat: 37.77, lng: 29.08}, {ad: "Diyarbakır", lat: 37.91, lng: 40.21}, {ad: "Edirne", lat: 41.67, lng: 26.56}, {ad: "Elazığ", lat: 38.67, lng: 39.22}, {ad: "Erzincan", lat: 39.74, lng: 39.49}, {ad: "Erzurum", lat: 39.90, lng: 41.27}, {ad: "Eskişehir", lat: 39.77, lng: 30.52}, {ad: "Gaziantep", lat: 37.06, lng: 37.38}, {ad: "Giresun", lat: 40.91, lng: 38.38}, {ad: "Gümüşhane", lat: 40.46, lng: 39.48}, {ad: "Hakkari", lat: 37.57, lng: 43.73}, {ad: "Hatay", lat: 36.20, lng: 36.16}, {ad: "Isparta", lat: 37.76, lng: 30.55}, {ad: "Mersin", lat: 36.81, lng: 34.63}, {ad: "İstanbul", lat: 41.00, lng: 28.97}, {ad: "İzmir", lat: 38.41, lng: 27.12}, {ad: "Kars", lat: 40.60, lng: 43.09}, {ad: "Kastamonu", lat: 41.37, lng: 33.77}, {ad: "Kayseri", lat: 38.72, lng: 35.48}, {ad: "Kırklareli", lat: 41.73, lng: 27.22}, {ad: "Kırşehir", lat: 39.14, lng: 34.16}, {ad: "Kocaeli", lat: 40.76, lng: 29.93}, {ad: "Konya", lat: 37.87, lng: 32.48}, {ad: "Kütahya", lat: 39.42, lng: 29.98}, {ad: "Malatya", lat: 38.35, lng: 38.31}, {ad: "Manisa", lat: 38.61, lng: 27.42}, {ad: "Kahramanmaraş", lat: 37.58, lng: 36.93}, {ad: "Mardin", lat: 37.31, lng: 40.73}, {ad: "Muğla", lat: 37.21, lng: 28.36}, {ad: "Muş", lat: 38.73, lng: 41.49}, {ad: "Nevşehir", lat: 38.62, lng: 34.71}, {ad: "Niğde", lat: 37.96, lng: 34.68}, {ad: "Ordu", lat: 40.98, lng: 37.87}, {ad: "Rize", lat: 41.02, lng: 40.52}, {ad: "Sakarya", lat: 40.77, lng: 30.40}, {ad: "Samsun", lat: 41.28, lng: 36.33}, {ad: "Siirt", lat: 37.92, lng: 41.94}, {ad: "Sinop", lat: 42.02, lng: 35.15}, {ad: "Sivas", lat: 39.75, lng: 37.01}, {ad: "Tekirdağ", lat: 40.97, lng: 27.51}, {ad: "Tokat", lat: 40.31, lng: 36.55}, {ad: "Trabzon", lat: 41.00, lng: 39.71}, {ad: "Tunceli", lat: 39.10, lng: 39.54}, {ad: "Şanlıurfa", lat: 37.15, lng: 38.79}, {ad: "Uşak", lat: 38.67, lng: 29.40}, {ad: "Van", lat: 38.50, lng: 43.37}, {ad: "Yozgat", lat: 39.81, lng: 34.80}, {ad: "Zonguldak", lat: 41.45, lng: 31.79}, {ad: "Aksaray", lat: 38.36, lng: 34.02}, {ad: "Bayburt", lat: 40.25, lng: 40.22}, {ad: "Karaman", lat: 37.18, lng: 33.21}, {ad: "Kırıkkale", lat: 39.84, lng: 33.51}, {ad: "Batman", lat: 37.88, lng: 41.12}, {ad: "Şırnak", lat: 37.51, lng: 42.45}, {ad: "Bartın", lat: 41.63, lng: 32.33}, {ad: "Ardahan", lat: 41.11, lng: 42.70}, {ad: "Iğdır", lat: 39.91, lng: 44.04}, {ad: "Yalova", lat: 40.65, lng: 29.27}, {ad: "Karabük", lat: 41.20, lng: 32.62}, {ad: "Kilis", lat: 36.71, lng: 37.11}, {ad: "Osmaniye", lat: 37.07, lng: 36.24}, {ad: "Düzce", lat: 40.84, lng: 31.16}
+        ];
+
+        // Şehirleri Select Menüsüne Doldur
+        const select = document.getElementById('sehirSecimi');
+        iller.sort((a, b) => a.ad.localeCompare(b.ad)).forEach(il => {
+            let opt = document.createElement('option');
+            opt.value = JSON.stringify({lat: il.lat, lng: il.lng});
+            opt.innerHTML = il.ad;
+            select.appendChild(opt);
+        });
+
+        // Şehre Git Fonksiyonu (Düzeltildi)
+        function sehreGit(val) {
+            if(!val) return;
+            const coords = JSON.parse(val);
+            map.setView([coords.lat, coords.lng], 12, {
+                animate: true,
+                duration: 1.5 // Geçiş hızı (saniye)
+            });
+        }
+
+        const kategoriFilter = document.getElementById('kategoriFilter');
+        const durumFilter = document.getElementById('durumFilter');
+        let tumArizalar = [];
+        let arizaMarkers = [];
+
+        function kategoriRengi(kategori) {
+            const metin = (kategori || '').toLocaleLowerCase('tr-TR');
+
+            if (metin.includes('elektrik')) return 'yellow';
+            if (metin.includes('su')) return 'blue';
+            if (metin.includes('doğalgaz') || metin.includes('dogalgaz')) return 'violet';
+            if (metin.includes('kanalizasyon')) return 'green';
+            if (metin.includes('hasarlı') || metin.includes('hasarli')) return 'red';
+            if (metin.includes('yol')) return 'orange';
+            if (metin.includes('peyzaj') || metin.includes('park')) return 'green';
+            if (metin.includes('temizlik')) return 'grey';
+            if (metin.includes('ulaşım') || metin.includes('ulasim') || metin.includes('trafik')) return 'orange';
+            if (metin.includes('diğer') || metin.includes('diger')) return 'grey';
+
+            return 'red';
+        }
+
+        function normalizeDurum(durum) {
+            const durumlar = {
+                0: "Beklemede",
+                1: "Inceleniyor",
+                2: "Onariliyor",
+                3: "Tamamlandi",
+                4: "IptalEdildi"
+            };
+
+            return durumlar[durum] || durum || '';
+        }
+
+        function durumRengi(durum) {
+            const temizDurum = normalizeDurum(durum);
+
+            if (temizDurum === 'Beklemede') return 'red';
+            if (temizDurum === 'Inceleniyor') return 'blue';
+            if (temizDurum === 'Onariliyor') return 'orange';
+            if (temizDurum === 'Tamamlandi') return 'green';
+            if (temizDurum === 'IptalEdildi') return 'grey';
+
+            return 'red';
+        }
+
+        function durumBadgeClass(durum) {
+            const temizDurum = normalizeDurum(durum);
+            const siniflar = {
+                Beklemede: 'bg-secondary',
+                Inceleniyor: 'bg-info text-dark',
+                Onariliyor: 'bg-warning text-dark',
+                Tamamlandi: 'bg-success',
+                IptalEdildi: 'bg-danger'
+            };
+
+            return siniflar[temizDurum] || 'bg-secondary';
+        }
+
+        function kategoriBadgeClass(kategori) {
+            const renk = kategoriRengi(kategori);
+            const siniflar = {
+                yellow: 'bg-warning text-dark',
+                blue: 'bg-primary',
+                green: 'bg-success',
+                orange: 'bg-warning text-dark',
+                violet: 'bg-info text-dark',
+                grey: 'bg-secondary',
+                red: 'bg-danger'
+            };
+
+            return siniflar[renk] || 'bg-danger';
+        }
+
+        function markerIconOlustur(durum) {
+            const renk = durumRengi(durum);
+
+            return L.icon({
+                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${renk}.png`,
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+        }
+
+        function haritayiFiltrele() {
+            const seciliKategori = kategoriFilter.value;
+            const seciliDurum = durumFilter.value;
+
+            arizaMarkers.forEach(marker => map.removeLayer(marker));
+            arizaMarkers = [];
+
+            const filtrelenmisArizalar = tumArizalar.filter(ariza => {
+                const kategori = ariza.kategori || ariza.Kategori || '';
+                const durum = normalizeDurum(ariza.durum || ariza.Durum || '');
+
+                return (!seciliKategori || kategori === seciliKategori) &&
+                    (!seciliDurum || durum === seciliDurum);
+            });
+
+            document.getElementById('aktifSayi').innerText = filtrelenmisArizalar.length;
+
+            filtrelenmisArizalar.forEach(ariza => {
+                const kategori = ariza.kategori || ariza.Kategori || '';
+                const durum = normalizeDurum(ariza.durum || ariza.Durum || '');
+                let lat = ariza.enlem || ariza.Enlem;
+                let lng = ariza.boylam || ariza.Boylam;
+
+                lat = parseFloat(lat.toString().replace(',', '.'));
+                lng = parseFloat(lng.toString().replace(',', '.'));
+
+                while (lat > 90) lat /= 10;
+                while (lng > 180) lng /= 10;
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    var popupContent = `
+                        <div class="p-1" style="width:220px">
+                            <img src="${ariza.fotografYolu || '/img/no-image.png'}" class="popup-img" onerror="this.src='/img/no-image.png'">
+                            <h6 class="fw-bold mb-1 text-dark">${ariza.baslik}</h6>
+                            <p class="text-muted mb-1" style="font-size: 0.8rem;">${ariza.aciklama || "Açıklama yok"}</p>
+                            <div class="mb-2">
+                                <span class="badge ${durumBadgeClass(durum)}">${durum}</span>
+                            </div>
+
+                            <div class="mb-2 p-2 bg-light rounded shadow-sm border-start border-danger border-3" style="font-size: 0.75rem;">
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                                <strong>Konum:</strong> ${ariza.adresTarifi}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                                <span class="badge ${kategoriBadgeClass(kategori)}">${kategori}</span>
+                                <small class="text-muted">${new Date(ariza.olusturmaTarihi).toLocaleDateString('tr-TR')}</small>
+                            </div>
+                        </div>`;
+
+                    const marker = L.marker([lat, lng], { icon: markerIconOlustur(durum) })
+                        .addTo(map)
+                        .bindPopup(popupContent);
+
+                    arizaMarkers.push(marker);
+                }
+            });
+        }
+
+        kategoriFilter.addEventListener('change', haritayiFiltrele);
+        durumFilter.addEventListener('change', haritayiFiltrele);
+
+        fetch('/Ariza/GetArizalar')
+            .then(response => response.json())
+            .then(data => {
+                tumArizalar = data;
+                haritayiFiltrele();
+            });
+    </script>
+}

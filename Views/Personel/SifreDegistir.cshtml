@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Personel Şifre Değiştir";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm" style="border-radius:18px;">
+            <div class="card-header bg-dark text-white p-3" style="border-radius:18px 18px 0 0;">
+                <h5 class="mb-0"><i class="bi bi-key me-2"></i>Şifre Değiştir</h5>
+            </div>
+            <div class="card-body p-4">
+                @if (ViewBag.Hata != null)
+                {
+                    <div class="alert alert-danger small">@ViewBag.Hata</div>
+                }
+                @if (ViewBag.Mesaj != null)
+                {
+                    <div class="alert alert-success small">@ViewBag.Mesaj</div>
+                }
+
+                <div class="alert alert-light border small d-flex gap-2 align-items-start">
+                    <i class="bi bi-shield-check text-primary"></i>
+                    <span>Yeni şifreniz en az 4 karakter olmalı. Güncelledikten sonra aynı oturumla çalışmaya devam edebilirsiniz.</span>
+                </div>
+
+                <form asp-action="SifreDegistir" asp-controller="Personel" method="post">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Mevcut Şifre</label>
+                        <input type="password" name="mevcutSifre" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Yeni Şifre</label>
+                        <input type="password" name="yeniSifre" class="form-control" minlength="4" maxlength="60" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Yeni Şifre Tekrar</label>
+                        <input type="password" name="yeniSifreTekrar" class="form-control" minlength="4" maxlength="60" required>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary fw-bold">Şifreyi Güncelle</button>
+                        <a asp-action="Panel" class="btn btn-light text-muted">Panele Dön</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

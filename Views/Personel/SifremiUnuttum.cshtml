@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Personel Şifre Sıfırlama";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm" style="border-radius:18px;">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="bi bi-shield-lock text-warning fs-1"></i>
+                    <h4 class="fw-bold mt-2 mb-1">Şifremi Unuttum</h4>
+                    <p class="text-muted small mb-0">Kayıtlı e-posta adresinizle devam edin</p>
+                </div>
+
+                @if (ViewBag.Hata != null)
+                {
+                    <div class="alert alert-danger small">@ViewBag.Hata</div>
+                }
+                @if (ViewBag.Mesaj != null)
+                {
+                    <div class="alert alert-success small">@ViewBag.Mesaj</div>
+                }
+
+                <form asp-action="SifremiUnuttum" asp-controller="Personel" method="post">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">E-posta</label>
+                        <input type="email" name="eposta" class="form-control" maxlength="120" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Güvenlik Kodu</label>
+                        <div class="d-flex gap-2">
+                            <div class="px-3 py-2 bg-light border rounded fw-bold text-warning">@ViewBag.GuvenlikKodu</div>
+                            <input type="text" name="guvenlikKodu" class="form-control" maxlength="6" placeholder="Kodu yazın" required>
+                        </div>
+                        <a asp-action="SifremiUnuttum" class="small text-decoration-none d-inline-block mt-1">Kodu yenile</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 py-2 fw-bold">Sıfırlama Bağlantısı Gönder</button>
+                </form>
+
+                <div class="text-center mt-3 small">
+                    <a asp-action="Login" class="text-decoration-none text-secondary">Girişe dön</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

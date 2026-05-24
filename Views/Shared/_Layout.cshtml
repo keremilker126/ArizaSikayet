@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ArizaSikayet Portalı</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link rel="icon" type="image/svg+xml" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"%3E%3Cdefs%3E%3ClinearGradient id="b" x1="0" y1="0" x2="1" y2="1"%3E%3Cstop offset="0%25" stop-color="%23006cff"/%3E%3Cstop offset="100%25" stop-color="%230043a8"/%3E%3C/linearGradient%3E%3ClinearGradient id="y" x1="0" y1="0" x2="1" y2="1"%3E%3Cstop offset="0%25" stop-color="%23ffd400"/%3E%3Cstop offset="100%25" stop-color="%23ffb300"/%3E%3C/linearGradient%3E%3ClinearGradient id="g" x1="0" y1="0" x2="1" y2="1"%3E%3Cstop offset="0%25" stop-color="%2377d000"/%3E%3Cstop offset="100%25" stop-color="%233e8f00"/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="512" height="512" rx="90" fill="%23f2f2f2"/%3E%3Cpath d="M90 140a180 180 0 0 1 160-70" fill="none" stroke="url(%23b)" stroke-width="22" stroke-linecap="round"/%3E%3Cpath d="M422 140a180 180 0 0 0-160-70" fill="none" stroke="url(%23y)" stroke-width="22" stroke-linecap="round"/%3E%3Cpath d="M256 110c-55 0-100 45-100 100 0 75 100 190 100 190s100-115 100-190c0-55-45-100-100-100zm0 145a45 45 0 1 1 0-90 45 45 0 0 1 0 90z" fill="%23ff001e"/%3E%3Cpath d="M105 320c40-20 80-20 120 0" fill="none" stroke="url(%23b)" stroke-width="18" stroke-linecap="round"/%3E%3Cpath d="M105 355c40-20 80-20 120 0" fill="none" stroke="url(%23b)" stroke-width="18" stroke-linecap="round"/%3E%3Cpath d="M385 195l-35 75h28l-20 70 60-90h-30l20-55z" fill="url(%23y)"/%3E%3Cpath d="M325 285l25-40 25 40" fill="none" stroke="%23e7a800" stroke-width="10"/%3E%3Cpath d="M310 325h80M320 355h60" stroke="%23e7a800" stroke-width="10" stroke-linecap="round"/%3E%3Cpath d="M120 420h270l-60-40H180z" fill="url(%23g)"/%3E%3Cpath d="M240 420l55-65 40 65" fill="%23222"/%3E%3Cpath d="M257 420l35-42 18 30" fill="none" stroke="%23fff" stroke-width="10" stroke-linecap="round"/%3E%3Crect x="220" y="180" width="35" height="90" rx="4" fill="%23004fd1"/%3E%3Crect x="265" y="150" width="45" height="120" rx="4" fill="%232c3e50"/%3E%3Ccircle cx="315" cy="250" r="22" fill="%2367b400"/%3E%3Ccircle cx="290" cy="275" r="18" fill="%2358a800"/%3E%3C/svg%3E'>
+
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        
+        /* Modern Navbar Tasarımı */
+        .navbar {
+            background: #ffffff !important;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05) !important;
+            padding: 15px 0;
+        }
+        .navbar-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #2c3e50 !important;
+            letter-spacing: -1px;
+        }
+        .navbar-brand-logo {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            flex: 0 0 auto;
+        }
+        .navbar-brand-text {
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .navbar-brand .brand-main { color: #2c3e50; }
+        .navbar-brand .brand-highlight { color: #e74c3c; }
+        
+        .nav-link {
+            font-weight: 500;
+            color: #555 !important;
+            transition: all 0.3s;
+            margin: 0 5px;
+        }
+        .nav-link:hover { color: #e74c3c !important; }
+        
+        /* Aktif sayfa vurgusu */
+        .nav-link.active { color: #e74c3c !important; font-weight: 700; }
+
+        /* Footer Stili */
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light mb-4">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Ariza" asp-action="Index">
+                    <img src="~/images/icon.jpeg" asp-append-version="true" alt="Arıza Şikayet" class="navbar-brand-logo" />
+                    <span class="navbar-brand-text"><span class="brand-main">Arıza</span> <span class="brand-highlight">Şikayet</span></span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house me-1"></i> Anasayfa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Ariza" asp-action="Index">
+                                <i class="bi bi-map me-1"></i> Arıza Haritası
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Ariza" asp-action="Bildir">
+                                <i class="bi bi-plus-circle me-1"></i> Arıza Bildir
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Vatandas" asp-action="@(User.IsInRole("Vatandas") ? "Panel" : "Login")">
+                                <i class="bi bi-person-circle me-1"></i> Vatandaş
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Personel" asp-action="@(User.IsInRole("Personel") ? "Panel" : "Login")">
+                                <i class="bi bi-person-badge me-1"></i> Personel
+                            </a>
+                        </li>
+                        @* <li class="nav-item">
+                            <a class="nav-link btn btn-outline-dark ms-lg-3 px-3" asp-controller="Ariza" asp-action="AdminPanel">
+                                <i class="bi bi-person-lock me-1"></i> Yönetim Paneli
+                            </a>
+                        </li> *@
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-5">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-center">
+        <div class="container">
+            &copy; 2026 - <strong>ArizaSikayet</strong> - Şehir Altyapı Takip Sistemi
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

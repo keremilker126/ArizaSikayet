@@ -1,0 +1,27 @@
+@model string
+@{
+    ViewData["Title"] = "Şifre Sıfırla";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card border-0 shadow-sm" style="border-radius:18px;">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-3">Yeni Şifre Belirle</h4>
+                @if (ViewBag.Hata != null) { <div class="alert alert-danger small">@ViewBag.Hata</div> }
+                <form asp-action="SifreSifirla" method="post">
+                    <input type="hidden" name="token" value="@Model">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Yeni Şifre</label>
+                        <input type="password" name="yeniSifre" class="form-control" minlength="4" maxlength="60" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Yeni Şifre Tekrar</label>
+                        <input type="password" name="yeniSifreTekrar" class="form-control" minlength="4" maxlength="60" required>
+                    </div>
+                    <button class="btn btn-success w-100" type="submit">Şifreyi Güncelle</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
